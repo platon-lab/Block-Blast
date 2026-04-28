@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>HERO BLOCK BLAST</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --glass: rgba(255, 255, 255, 0.1);
+            --neon-blue: #00f2ff;
+            --neon-purple: #bc13fe;
+            --text-color: #f8fafc;
+            --grid-size: 8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            justify-content: center;
+        }
+
+        /* Start Screen */
+        #start-screen {
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(circle at center, #1e293b, #0f172a);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            padding: 20px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 2rem;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            color: var(--neon-blue);
+            text-shadow: 0 0 10px var(--neon-blue);
+        }
+
+        .hero-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            max-width: 400px;
+        }
+
+        .hero-card {
+            background: var(--glass);
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 10px;
+            cursor: pointer;
+            transition: transform 0.2s, border-color 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .hero-card:hover {
+            border-color: var(--neon-blue);
+            transform: translateY(-5px);
+        }
+
+        .hero-img-placeholder {
+            width: 60px;
+            height: 60px;
+            background: #334155;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .hero-img-placeholder img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Game UI */
+        #game-ui {
+            width: 100%;
+            max-width: 500px;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .stats {
+            background: var(--glass);
+            padding: 10px 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(5px);
+        }
+
+        .score-val {
+            font-weight: bold;
+            color: var(--neon-blue);
+            font-size: 1.2rem;
+        }
+
+        /* Grid */
+        #game-container {
+            position: relative;
+            width: 90vw;
+            height: 90vw;
+            max-width: 450px;
+            max-height: 450px;
+            background: var(--glass);
+            border: 4px solid #1e293b;
+            border-radius: 8px;
+            display: grid;
+            grid-template-columns: repeat(var(--grid-size), 1fr);
+            grid-template-rows: repeat(var(--grid-size), 1fr);
+            gap: 2px;
+            padding: 2px;
+        }
+
+        .cell {
+            background: rgba(30, 41, 59, 0.5);
+            border-radius: 4px;
+            position: relative;
+        }
+
+        .cell.highlight {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Block Styles */
+        .block {
+            width: 100%;
+            height: 100%;
+            border-radius: 4px;
+            background-size: cover;
+            background-position: center;
+            animation: popIn 0.3s ease-out;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .clearing {
+            animation: clearOut 0.4s ease-in forwards;
+        }
+
+        @keyframes clearOut {
+            0% { transform: scale(1); filter: brightness(2); }
+            100% { transform: scale(0); opacity: 0; }
+        }
+
+        /* Dock */
+        #dock {
+            margin-top: 30px;
+            display: flex;
+            gap: 20px;
+            height: 120px;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .shape-container {
+            width: 100px;
+            height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: grab;
+            touch-action: none;
+        }
+
+        .shape {
+            display: grid;
+            position: relative;
+            transform-origin: center;
+        }
+
+        .shape-block {
+            width: 20px;
+            height: 20px;
+            background-size: cover;
+            border-radius: 2px;
+            border: 0.5px solid rgba(0,0,0,0.2);
+        }
+
+        /* Dragging Ghost */
+        #drag-ghost {
+            position: fixed;
+            pointer-events: none;
+            display: grid;
+            z-index: 1000;
+            opacity: 0.8;
+            transform: scale(1.1);
+        }
+
+        /* Game Over */
+        #game-over {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.9);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+            backdrop-filter: blur(10px);
+        }
+
+        .btn {
+            background: var(--neon-blue);
+            color: #000;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            cursor: pointer;
+            margin-top: 20px;
+            box-shadow: 0 0 15px var(--neon-blue);
+        }
+
+        .hidden { display: none !important; }
+
+        #combo-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3rem;
+            color: var(--neon-purple);
+            text-shadow: 0 0 20px var(--neon-purple);
+            font-weight: 900;
+            pointer-events: none;
+            z-index: 50;
+            opacity: 0;
+        }
+
+        .show-combo {
+            animation: comboAnim 0.8s ease-out forwards;
+        }
+
+        @keyframes comboAnim {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+            50% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(1.5); }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="start-screen">
+        <h1>HERO BLAST</h1>
+        <p style="margin-bottom: 20px;">Оберіть свого героя:</p>
+        <div class="hero-grid">
+            <div class="hero-card" onclick="startGame('Tito')">
+                <div class="hero-img-placeholder"><img src="Tito.png" alt="T"></div>
+                <span>Tito</span>
+            </div>
+            <div class="hero-card" onclick="startGame('Smartik')">
+                <div class="hero-img-placeholder"><img src="Smartik.png" alt="S"></div>
+                <span>Smartik</span>
+            </div>
+            <div class="hero-card" onclick="startGame('Junior')">
+                <div class="hero-img-placeholder"><img src="Junior.png" alt="J"></div>
+                <span>Junior</span>
+            </div>
+            <div class="hero-card" onclick="startGame('Fil')">
+                <div class="hero-img-placeholder"><img src="Fil.png" alt="F"></div>
+                <span>Fil</span>
+            </div>
+            <div class="hero-card" onclick="startGame('Milka')">
+                <div class="hero-img-placeholder"><img src="Milka.png" alt="M"></div>
+                <span>Milka</span>
+            </div>
+            <div class="hero-card" onclick="startGame('Bark')">
+                <div class="hero-img-placeholder"><img src="Bark.png" alt="B"></div>
+                <span>Bark</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="game-ui">
+        <div class="stats">SCORE: <span id="current-score" class="score-val">0</span></div>
+        <div class="stats">BEST: <span id="high-score" class="score-val">0</span></div>
+    </div>
+
+    <div id="game-container"></div>
+    <div id="combo-text">COMBO!</div>
+
+    <div id="dock"></div>
+
+    <div id="game-over">
+        <h2 style="font-size: 2.5rem; color: #ff4757;">GAME OVER</h2>
+        <p style="font-size: 1.5rem; margin: 10px;">Score: <span id="final-score">0</span></p>
+        <button class="btn" onclick="resetGame()">RESTART</button>
+    </div>
+
+    <div id="drag-ghost"></div>
+
+    <script>
+        const GRID_SIZE = 8;
+        const gameContainer = document.getElementById('game-container');
+        const dock = document.getElementById('dock');
+        const dragGhost = document.getElementById('drag-ghost');
+        
+        let score = 0;
+        let highScore = localStorage.getItem('heroBlastBest') || 0;
+        let selectedHero = '';
+        let board = Array(GRID_SIZE).fill().map(() => Array(GRID_SIZE).fill(null));
+        let comboCount = 0;
+
+        const SHAPES = [
+            [[0,0]], // Single
+            [[0,0],[0,1]], // 1x2
+            [[0,0],[1,0]], // 2x1
+            [[0,0],[0,1],[1,0],[1,1]], // Square
+            [[0,0],[0,1],[0,2]], // 1x3
+            [[0,0],[1,0],[2,0]], // 3x1
+            [[0,0],[0,1],[0,2],[0,3]], // 1x4
+            [[0,0],[1,0],[2,0],[3,0]], // 4x1
+            [[0,0],[1,0],[1,1]], // L small
+            [[0,0],[0,1],[1,1]], // L small rot
+            [[0,0],[1,0],[2,0],[2,1]], // L
+            [[0,0],[0,1],[0,2],[1,2]], // J
+            [[0,0],[1,0],[1,1],[2,1]], // Z
+            [[1,0],[1,1],[0,1],[0,2]], // S
+            [[0,0],[1,0],[2,0],[1,1]], // T
+        ];
+
+        document.getElementById('high-score').textContent = highScore;
+
+        function startGame(hero) {
+            selectedHero = hero;
+            document.getElementById('start-screen').classList.add('hidden');
+            initGrid();
+            spawnShapes();
+        }
+
+        function initGrid() {
+            gameContainer.innerHTML = '';
+            for (let r = 0; r < GRID_SIZE; r++) {
+                for (let c = 0; c < GRID_SIZE; c++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.dataset.r = r;
+                    cell.dataset.c = c;
+                    gameContainer.appendChild(cell);
+                }
+            }
+        }
+
+        function spawnShapes() {
+            dock.innerHTML = '';
+            for (let i = 0; i < 3; i++) {
+                const shapeData = SHAPES[Math.floor(Math.random() * SHAPES.length)];
+                createDockShape(shapeData);
+            }
+            checkGameOver();
+        }
+
+        function createDockShape(coords) {
+            const container = document.createElement('div');
+            container.className = 'shape-container';
+            
+            const shape = document.createElement('div');
+            shape.className = 'shape';
+            
+            const maxR = Math.max(...coords.map(c => c[0]));
+            const maxC = Math.max(...coords.map(c => c[1]));
+            shape.style.gridTemplateRows = `repeat(${maxR + 1}, 20px)`;
+            shape.style.gridTemplateColumns = `repeat(${maxC + 1}, 20px)`;
+
+            coords.forEach(pos => {
+                const b = document.createElement('div');
+                b.className = 'shape-block';
+                b.style.gridRowStart = pos[0] + 1;
+                b.style.gridColumnStart = pos[1] + 1;
+                applyHeroStyle(b);
+                shape.appendChild(b);
+            });
+
+            container.appendChild(shape);
+            dock.appendChild(container);
+
+            container.addEventListener('mousedown', (e) => startDrag(e, coords, container));
+            container.addEventListener('touchstart', (e) => startDrag(e.touches[0], coords, container), {passive: false});
+        }
+
+        function applyHeroStyle(el) {
+            const colors = {
+                'Tito': '#3b82f6', 'Smartik': '#f59e0b', 'Junior': '#10b981',
+                'Fil': '#ef4444', 'Milka': '#ec4899', 'Bark': '#8b5cf6'
+            };
+            el.style.backgroundColor = colors[selectedHero] || '#fff';
+            el.style.backgroundImage = `url('${selectedHero}.png')`;
+        }
+
+        let isDragging = false;
+        let currentDragCoords = [];
+        let currentSourceEl = null;
+
+        function startDrag(e, coords, el) {
+            isDragging = true;
+            currentDragCoords = coords;
+            currentSourceEl = el;
+            el.style.opacity = '0.3';
+
+            dragGhost.innerHTML = '';
+            const maxR = Math.max(...coords.map(c => c[0]));
+            const maxC = Math.max(...coords.map(c => c[1]));
+            
+            const cellSize = gameContainer.offsetWidth / GRID_SIZE;
+            
+            dragGhost.style.gridTemplateRows = `repeat(${maxR + 1}, ${cellSize}px)`;
+            dragGhost.style.gridTemplateColumns = `repeat(${maxC + 1}, ${cellSize}px)`;
+
+            coords.forEach(pos => {
+                const b = document.createElement('div');
+                b.className = 'block';
+                b.style.gridRowStart = pos[0] + 1;
+                b.style.gridColumnStart = pos[1] + 1;
+                applyHeroStyle(b);
+                dragGhost.appendChild(b);
+            });
+
+            updateGhostPos(e);
+            dragGhost.classList.remove('hidden');
+        }
+
+        function updateGhostPos(e) {
+            const cellSize = gameContainer.offsetWidth / GRID_SIZE;
+            dragGhost.style.left = (e.clientX - cellSize / 2) + 'px';
+            dragGhost.style.top = (e.clientY - cellSize * 1.5) + 'px';
+
+            clearHighlights();
+            const target = getTargetCell(e);
+            if (target && canPlace(target.r, target.c, currentDragCoords)) {
+                highlightCells(target.r, target.c, currentDragCoords);
+            }
+        }
+
+        function getTargetCell(e) {
+            const cellSize = gameContainer.offsetWidth / GRID_SIZE;
+            const x = e.clientX;
+            const y = e.clientY - cellSize;
+            
+            const el = document.elementFromPoint(x, y);
+            const cell = el?.closest('.cell');
+            if (cell) {
+                return { r: parseInt(cell.dataset.r), c: parseInt(cell.dataset.c) };
+            }
+            return null;
+        }
+
+        function canPlace(r, c, coords) {
+            return coords.every(pos => {
+                const nr = r + pos[0];
+                const nc = c + pos[1];
+                return nr >= 0 && nr < GRID_SIZE && nc >= 0 && nc < GRID_SIZE && !board[nr][nc];
+            });
+        }
+
+        function highlightCells(r, c, coords) {
+            coords.forEach(pos => {
+                const cell = document.querySelector(`.cell[data-r="${r + pos[0]}"][data-c="${c + pos[1]}"]`);
+                cell?.classList.add('highlight');
+            });
+        }
+
+        function clearHighlights() {
+            document.querySelectorAll('.cell.highlight').forEach(el => el.classList.remove('highlight'));
+        }
+
+        window.addEventListener('mousemove', (e) => { if (isDragging) updateGhostPos(e); });
+        window.addEventListener('touchmove', (e) => { if (isDragging) { e.preventDefault(); updateGhostPos(e.touches[0]); } }, {passive: false});
+
+        window.addEventListener('mouseup', (e) => endDrag(e));
+        window.addEventListener('touchend', (e) => endDrag(e.changedTouches[0]));
+
+        function endDrag(e) {
+            if (!isDragging) return;
+            isDragging = false;
+            dragGhost.classList.add('hidden');
+            clearHighlights();
+
+            const target = getTargetCell(e);
+            if (target && canPlace(target.r, target.c, currentDragCoords)) {
+                placeShape(target.r, target.c, currentDragCoords);
+                currentSourceEl.remove();
+                if (dock.children.length === 0) {
+                    spawnShapes();
+                } else {
+                    checkGameOver(); // Перевірка після кожного ходу
+                }
+            } else {
+                currentSourceEl.style.opacity = '1';
+            }
+        }
+
+        function placeShape(r, c, coords) {
+            coords.forEach(pos => {
+                const nr = r + pos[0];
+                const nc = c + pos[1];
+                board[nr][nc] = selectedHero;
+                const cell = document.querySelector(`.cell[data-r="${nr}"][data-c="${nc}"]`);
+                const b = document.createElement('div');
+                b.className = 'block';
+                applyHeroStyle(b);
+                cell.appendChild(b);
+            });
+            score += coords.length;
+            checkLines();
+            updateUI();
+        }
+
+        function checkLines() {
+            let rowsToClear = [];
+            let colsToClear = [];
+
+            for (let r = 0; r < GRID_SIZE; r++) {
+                if (board[r].every(cell => cell !== null)) rowsToClear.push(r);
+            }
+            for (let c = 0; c < GRID_SIZE; c++) {
+                let full = true;
+                for (let r = 0; r < GRID_SIZE; r++) {
+                    if (board[r][c] === null) { full = false; break; }
+                }
+                if (full) colsToClear.push(c);
+            }
+
+            if (rowsToClear.length > 0 || colsToClear.length > 0) {
+                comboCount++;
+                const linesCleared = rowsToClear.length + colsToClear.length;
+                score += (linesCleared * 10) * comboCount;
+                
+                if (comboCount > 1) showCombo();
+
+                rowsToClear.forEach(r => clearRow(r));
+                colsToClear.forEach(c => clearCol(c));
+            } else {
+                comboCount = 0;
+            }
+        }
+
+        function clearRow(r) {
+            for (let c = 0; c < GRID_SIZE; c++) {
+                board[r][c] = null;
+                animateClear(r, c);
+            }
+        }
+
+        function clearCol(c) {
+            for (let r = 0; r < GRID_SIZE; r++) {
+                board[r][c] = null;
+                animateClear(r, c);
+            }
+        }
+
+        function animateClear(r, c) {
+            const cell = document.querySelector(`.cell[data-r="${r}"][data-c="${c}"]`);
+            const block = cell.firstChild;
+            if (block) {
+                block.classList.add('clearing');
+                setTimeout(() => block.remove(), 400);
+            }
+        }
+
+        function showCombo() {
+            const ct = document.getElementById('combo-text');
+            ct.classList.remove('show-combo');
+            void ct.offsetWidth; 
+            ct.classList.add('show-combo');
+        }
+
+        function updateUI() {
+            document.getElementById('current-score').textContent = score;
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('heroBlastBest', highScore);
+                document.getElementById('high-score').textContent = highScore;
+            }
+        }
+
+        function checkGameOver() {
+            const remainingShapes = Array.from(dock.querySelectorAll('.shape-container')).map(container => {
+                const blocks = container.querySelectorAll('.shape-block');
+                return Array.from(blocks).map(b => [parseInt(b.style.gridRowStart)-1, parseInt(b.style.gridColumnStart)-1]);
+            });
+
+            if (remainingShapes.length === 0) return;
+
+            let possible = false;
+            for (let shape of remainingShapes) {
+                for (let r = 0; r < GRID_SIZE; r++) {
+                    for (let c = 0; c < GRID_SIZE; c++) {
+                        if (canPlace(r, c, shape)) {
+                            possible = true;
+                            break;
+                        }
+                    }
+                    if (possible) break;
+                }
+                if (possible) break;
+            }
+
+            if (!possible) {
+                document.getElementById('final-score').textContent = score;
+                document.getElementById('game-over').style.display = 'flex';
+            }
+        }
+
+        function resetGame() {
+            score = 0;
+            comboCount = 0;
+            board = Array(GRID_SIZE).fill().map(() => Array(GRID_SIZE).fill(null));
+            updateUI();
+            document.getElementById('game-over').style.display = 'none';
+            initGrid();
+            spawnShapes();
+        }
+    </script>
+</body>
+</html>
