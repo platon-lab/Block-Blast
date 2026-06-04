@@ -59,9 +59,21 @@
 
         .hero-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-            max-width: 400px;
+            grid-template-columns: repeat(4, 1fr); /* Змінено на 4 колонки, щоб 20 героїв гарно влазили */
+            gap: 12px;
+            max-width: 550px;
+            max-height: 70vh;
+            overflow-y: auto; /* Додано скрол, якщо екран малий */
+            padding: 10px;
+        }
+
+        /* Стиль для гарного скролбару в меню вибору */
+        .hero-grid::-webkit-scrollbar {
+            width: 6px;
+        }
+        .hero-grid::-webkit-scrollbar-thumb {
+            background: var(--neon-blue);
+            border-radius: 10px;
         }
 
         .hero-card {
@@ -303,6 +315,63 @@
                 <div class="hero-img-placeholder"><img src="Bark.png" alt="B"></div>
                 <span>Bark</span>
             </div>
+            <!-- Нові 14 героїв -->
+            <div class="hero-card" onclick="startGame('Persik')">
+                <div class="hero-img-placeholder"><img src="Persik.png" alt="P"></div>
+                <span>Persik</span>
+            </div>
+            <div class="hero-card" onclick="startGame('Spike')">
+                <div class="hero-img-placeholder"><img src="Spike.png" alt="S"></div>
+                <span>Spike</span>
+            </div>
+            <div class="hero-card" onclick="startGame('Alyonka')">
+                <div class="hero-img-placeholder"><img src="Alyonka.png" alt="A"></div>
+                <span>Alyonka</span>
+            </div>
+            <div class="hero-card" onclick="startGame('Lilu')">
+                <div class="hero-img-placeholder"><img src="Lilu.png" alt="L"></div>
+                <span>Lilu</span>
+            </div>
+            <div class="hero-card" onclick="startGame('Manya')">
+                <div class="hero-img-placeholder"><img src="Manya.png" alt="M"></div>
+                <span>Manya</span>
+            </div>
+            <div class="hero-card" onclick="startGame('Liza')">
+                <div class="hero-img-placeholder"><img src="Liza.png" alt="L"></div>
+                <span>Liza</span>
+            </div>
+            <div class="hero-card" onclick="startGame('Grivna')">
+                <div class="hero-img-placeholder"><img src="Grivna.png" alt="G"></div>
+                <span>Grivna</span>
+            </div>
+            <div class="hero-card" onclick="startGame('Ben')">
+                <div class="hero-img-placeholder"><img src="Ben.png" alt="B"></div>
+                <span>Ben</span>
+            </div>
+            <div class="hero-card" onclick="startGame('Goldi')">
+                <div class="hero-img-placeholder"><img src="Goldi.png" alt="G"></div>
+                <span>Goldi</span>
+            </div>
+            <div class="hero-card" onclick="startGame('Raf')">
+                <div class="hero-img-placeholder"><img src="Raf.png" alt="R"></div>
+                <span>Raf</span>
+            </div>
+            <div class="hero-card" onclick="startGame('Veles')">
+                <div class="hero-img-placeholder"><img src="Veles.png" alt="V"></div>
+                <span>Veles</span>
+            </div>
+            <div class="hero-card" onclick="startGame('Masha')">
+                <div class="hero-img-placeholder"><img src="Masha.png" alt="M"></div>
+                <span>Masha</span>
+            </div>
+            <div class="hero-card" onclick="startGame('Brilliantik')">
+                <div class="hero-img-placeholder"><img src="Brilliantik.png" alt="B"></div>
+                <span>Brilliantik</span>
+            </div>
+            <div class="hero-card" onclick="startGame('Richik')">
+                <div class="hero-img-placeholder"><img src="Richik.png" alt="R"></div>
+                <span>Richik</span>
+            </div>
         </div>
     </div>
 
@@ -416,7 +485,12 @@
         function applyHeroStyle(el) {
             const colors = {
                 'Tito': '#3b82f6', 'Smartik': '#f59e0b', 'Junior': '#10b981',
-                'Fil': '#ef4444', 'Milka': '#ec4899', 'Bark': '#8b5cf6'
+                'Fil': '#ef4444', 'Milka': '#ec4899', 'Bark': '#8b5cf6',
+                'Persik': '#ff793f', 'Spike': '#2ed573', 'Alyonka': '#ffb142',
+                'Lilu': '#ff5252', 'Manya': '#706fd3', 'Liza': '#474787',
+                'Grivna': '#218c74', 'Ben': '#cd6133', 'Goldi': '#ccae62',
+                'Raf': '#130cb7', 'Veles': '#5758bb', 'Masha': '#ff6b81',
+                'Brilliantik': '#00d2d3', 'Richik': '#54a0ff'
             };
             el.style.backgroundColor = colors[selectedHero] || '#fff';
             el.style.backgroundImage = `url('${selectedHero}.png')`;
