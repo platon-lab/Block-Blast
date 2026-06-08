@@ -372,6 +372,15 @@
                 <div class="hero-img-placeholder"><img src="Richik.png" alt="R"></div>
                 <span>Richik</span>
             </div>
+            <!-- Ще 2 нових герої -->
+            <div class="hero-card" onclick="startGame('Shunya')">
+                <div class="hero-img-placeholder"><img src="Shunya.png" alt="S"></div>
+                <span>Shunya</span>
+            </div>
+            <div class="hero-card" onclick="startGame('Baks')">
+                <div class="hero-img-placeholder"><img src="Baks.png" alt="B"></div>
+                <span>Baks</span>
+            </div>
         </div>
     </div>
 
@@ -490,7 +499,8 @@
                 'Lilu': '#ff5252', 'Manya': '#706fd3', 'Liza': '#474787',
                 'Grivna': '#218c74', 'Ben': '#cd6133', 'Goldi': '#ccae62',
                 'Raf': '#130cb7', 'Veles': '#5758bb', 'Masha': '#ff6b81',
-                'Brilliantik': '#00d2d3', 'Richik': '#54a0ff'
+                'Brilliantik': '#00d2d3', 'Richik': '#54a0ff',
+                'Shunya': '#fffa65', 'Baks': '#1dd1a1'
             };
             el.style.backgroundColor = colors[selectedHero] || '#fff';
             el.style.backgroundImage = `url('${selectedHero}.png')`;
